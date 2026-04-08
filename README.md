@@ -38,7 +38,7 @@ Les secrets (credentials Azure, Docker) sont stockés dans GitHub Secrets et jam
 ## Load testing
 
 ```bash
-k6 run -e TARGET_URL=https://TON_URL_AZURE k6/load-test.js
+k6 run -e TARGET_URL=https://sg-frontend.bluedesert-eaead0d4.francecentral.azurecontainerapps.io k6/load-test.js
 ```
 
 Le script simule une montée de 0 à 100 utilisateurs sur 2 minutes, puis redescend.
