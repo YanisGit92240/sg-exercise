@@ -1,0 +1,79 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+
+env:
+  IMAGE_BACKEND: ${{ secrets.DOCKER_USERNAME }}/sg-exercise-backend
+  IMAGE_FRONTEND: ${{ secrets.DOCKER_USERNAME }}/sg-exercise-frontend
+  RESOURCE_GROUP: sg-exercise-rg
+  ENVIRONMENT: sg-exercise-env
+
+jobs:
+  build-and-push:
+    name: Build Docker images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ env.IMAGE_BACKEND }}:${{ github.sha }},${{ env.IMAGE_BACKEND }}:latest
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: true
+          tags: ${{ env.IMAGE_FRONTEND }}:${{ github.sha }},${{ env.IMAGE_FRONTEND }}:latest
+
+  deploy:
+    name: Deploy to Azure
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy backend
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          containerAppEnvironment: ${{ env.ENVIRONMENT }}
+          containerAppName: sg-backend
+          imageToDeploy: ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
+          targetPort: 8000
+          ingress: external
+          environmentVariables: APP_MESSAGE=${{ secrets.APP_MESSAGE }}
+
+      - name: Deploy frontend
+        uses: azure/container-apps-deploy-action@v1
+        with:
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          containerAppEnvironment: ${{ env.ENVIRONMENT }}
+          containerAppName: sg-frontend
+          imageToDeploy: ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
+          targetPort: 80
+          ingress: external
+
+      - name: Get frontend URL
+        run: |
+          URL=$(az containerapp show \
+            --name sg-frontend \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query properties.configuration.ingress.fqdn -o tsv)
+          echo "App deployed at: https://$URL"
