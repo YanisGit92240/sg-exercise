@@ -1,7 +1,7 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 
-// URL de ton app (à changer une fois déployé sur Azure)
+
 const BASE_URL = __ENV.TARGET_URL || 'http://localhost:8000';
 
 export const options = {
