@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>SG Exercise</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 80px auto; text-align: center; }
+    h1 { color: #e30613; }
+    #message { font-size: 1.4em; margin-top: 40px; color: #333; }
+    #status { font-size: 0.9em; color: #888; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>SG Exercise</h1>
+  <div id="message">Chargement...</div>
+  <div id="status"></div>
+  <script>
+    const API = window.location.hostname === 'localhost'
+      ? 'http://localhost:8000'
+      : '/api-backend'; // sera configuré via nginx en prod
+
+    fetch(API + '/api/message')
+      .then(r => r.json())
+      .then(data => {
+        document.getElementById('message').textContent = data.message;
+        document.getElementById('status').textContent = '✓ Backend connecté';
+      })
+      .catch(() => {
+        document.getElementById('message').textContent = 'Erreur de connexion au backend';
+        document.getElementById('status').textContent = '✗ Backend non joignable';
+      });
+  </script>
+</body>
+</html>
