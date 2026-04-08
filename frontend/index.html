@@ -17,7 +17,7 @@
   <script>
     const API = window.location.hostname === 'localhost'
       ? 'http://localhost:8000'
-      : '/api-backend'; // sera configuré via nginx en prod
+      : 'https://sg-backend.bluedesert-eaead0d4.francecentral.azurecontainerapps.io';
 
     fetch(API + '/api/message')
       .then(r => r.json())
