@@ -58,7 +58,7 @@ jobs:
           imageToDeploy: ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
           targetPort: 8000
           ingress: external
-          environmentVariables: APP_MESSAGE=${{ secrets.APP_MESSAGE }}
+          environmentVariables: "APP_MESSAGE=${{ secrets.APP_MESSAGE }}"
 
       - name: Deploy frontend
         uses: azure/container-apps-deploy-action@v1
