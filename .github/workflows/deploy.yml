@@ -49,26 +49,42 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: Install containerapp extension
+        run: az extension add --name containerapp --upgrade -y
+
       - name: Deploy backend
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          resourceGroup: ${{ env.RESOURCE_GROUP }}
-          containerAppEnvironment: ${{ env.ENVIRONMENT }}
-          containerAppName: sg-backend
-          imageToDeploy: ${{ env.IMAGE_BACKEND }}:${{ github.sha }}
-          targetPort: 8000
-          ingress: external
-          environmentVariables: "APP_MESSAGE=${{ secrets.APP_MESSAGE }}"
+        run: |
+          az containerapp create \
+            --name sg-backend \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --environment ${{ env.ENVIRONMENT }} \
+            --image ${{ env.IMAGE_BACKEND }}:${{ github.sha }} \
+            --target-port 8000 \
+            --ingress external \
+            --env-vars APP_MESSAGE="${{ secrets.APP_MESSAGE }}" \
+            --min-replicas 1 \
+            --max-replicas 5 \
+            || az containerapp update \
+            --name sg-backend \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --image ${{ env.IMAGE_BACKEND }}:${{ github.sha }} \
+            --set-env-vars APP_MESSAGE="${{ secrets.APP_MESSAGE }}"
 
       - name: Deploy frontend
-        uses: azure/container-apps-deploy-action@v1
-        with:
-          resourceGroup: ${{ env.RESOURCE_GROUP }}
-          containerAppEnvironment: ${{ env.ENVIRONMENT }}
-          containerAppName: sg-frontend
-          imageToDeploy: ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
-          targetPort: 80
-          ingress: external
+        run: |
+          az containerapp create \
+            --name sg-frontend \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --environment ${{ env.ENVIRONMENT }} \
+            --image ${{ env.IMAGE_FRONTEND }}:${{ github.sha }} \
+            --target-port 80 \
+            --ingress external \
+            --min-replicas 1 \
+            --max-replicas 3 \
+            || az containerapp update \
+            --name sg-frontend \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --image ${{ env.IMAGE_FRONTEND }}:${{ github.sha }}
 
       - name: Get frontend URL
         run: |
