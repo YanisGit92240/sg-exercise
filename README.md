@@ -170,7 +170,7 @@ az containerapp logs show \
   --follow
 
 Chaque requête HTTP est loggée avec son statut. Azure Monitor agrège ces logs et permet de créer des dashboards et des alertes.
-## Limitations connues
+## Les limites de mon projet
 
 - Pas de base de données : le state est en mémoire uniquement, il est perdu au redémarrage du container
 - L'URL publique est celle d'Azure par défaut, pas un custom domain
